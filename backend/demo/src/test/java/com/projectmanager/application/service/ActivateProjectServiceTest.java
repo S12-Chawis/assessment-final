@@ -12,7 +12,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 import java.util.UUID;
 
+// ESTOS SON LOS IMPORTS CORRECTOS
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,15 +31,32 @@ class ActivateProjectTest {
     private ProjectTaskService service;
 
     @Test
+    void activateProject_WithTasks_ShouldSucceed() {
+        UUID pid = UUID.randomUUID();
+        UUID uid = UUID.randomUUID();
+        Project p = new Project(pid, uid, "Test", ProjectStatus.DRAFT, false);
+
+        when(projectRepo.findById(pid)).thenReturn(Optional.of(p));
+        when(user.getCurrentUserId()).thenReturn(uid);
+        when(taskRepo.countByProjectIdAndCompletedFalse(pid)).thenReturn(1L);
+
+        service.activate(pid);
+
+        // Ahora verify y any funcionarán correctamente
+        verify(projectRepo).save(any(Project.class));
+        verify(notify).notify(anyString());
+    }
+
+    @Test
     void activateProject_WithoutTasks_ShouldFail() {
-        UUID id = UUID.randomUUID();
-        UUID ownerId = UUID.randomUUID();
-        Project p = new Project(id, ownerId, "Test", ProjectStatus.DRAFT, false);
+        UUID pid = UUID.randomUUID();
+        UUID uid = UUID.randomUUID();
+        Project p = new Project(pid, uid, "Empty Project", ProjectStatus.DRAFT, false);
 
-        when(projectRepo.findById(id)).thenReturn(Optional.of(p));
-        when(user.getCurrentUserId()).thenReturn(ownerId);
-        when(taskRepo.countByProjectIdAndCompletedFalse(id)).thenReturn(0L);
+        when(projectRepo.findById(pid)).thenReturn(Optional.of(p));
+        when(user.getCurrentUserId()).thenReturn(uid);
+        when(taskRepo.countByProjectIdAndCompletedFalse(pid)).thenReturn(0L); // 0 tareas
 
-        assertThrows(IllegalStateException.class, () -> service.activate(id)); //
+        assertThrows(IllegalStateException.class, () -> service.activate(pid));
     }
 }

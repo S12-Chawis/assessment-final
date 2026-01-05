@@ -13,8 +13,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+import java.util.UUID;
+
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final UserRepositoryPort userRepository;
@@ -23,19 +26,23 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            return ResponseEntity.badRequest().body("Username already exists");
+        }
+        user.setId(UUID.randomUUID());
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return ResponseEntity.ok(userRepository.save(user));
+        userRepository.save(user);
+        return ResponseEntity.ok("User registered successfully");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        User user = userRepository.findByUsername(request.username())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (passwordEncoder.matches(request.password(), user.getPassword())) {
-            String token = jwtService.generateToken(user.getUsername());
-            return ResponseEntity.ok(new AuthResponse(token));
-        }
-        return ResponseEntity.status(401).body("Invalid credentials");
+    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
+        return userRepository.findByUsername(credentials.get("username"))
+                .filter(user -> passwordEncoder.matches(credentials.get("password"), user.getPassword()))
+                .map(user -> {
+                    String token = jwtService.generateToken(user.getUsername());
+                    return ResponseEntity.ok(Map.of("token", token));
+                })
+                .orElse(ResponseEntity.status(401).body(Map.of("error", "Invalid credentials")));
     }
 }

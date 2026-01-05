@@ -2,16 +2,16 @@ services:
   db:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: projects_db
-      POSTGRES_USER: tu_usuario
-      POSTGRES_PASSWORD: tu_password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
   backend:
-    build: .
+    build: ./backend/demo
     ports:
       - "8080:8080"
     depends_on:
       - db
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/projects_db
+      - SPRING_PROFILES_ACTIVE=docker

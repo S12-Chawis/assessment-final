@@ -20,7 +20,8 @@ public class Project {
     public void activate(long activeTasksCount) {
         if (activeTasksCount == 0) {
             throw new IllegalStateException("Project must have at least one active task to be activated.");
+        } else {
+            this.status = ProjectStatus.ACTIVE;
         }
-        this.status = ProjectStatus.ACTIVE;
     }
 }

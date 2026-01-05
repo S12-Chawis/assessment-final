@@ -3,6 +3,7 @@ package com.projectmanager.infrastructure.adapter.out.external;
 import com.projectmanager.domain.port.out.AuditLogPort;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Component

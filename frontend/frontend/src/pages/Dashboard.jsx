@@ -21,18 +21,23 @@ const Dashboard = () => {
     };
 
     const handleCreateTask = async (projectId) => {
-        await api.post(`/projects/${projectId}/tasks`, { title: newTaskTitle[projectId] });
-        setNewTaskTitle({ ...newTaskTitle, [projectId]: "" });
-        loadData();
-    };
+    await api.post(`/tasks/${projectId}`, newTaskTitle[projectId], {
+        headers: { 'Content-Type': 'text/plain' } // Si el controlador recibe @RequestBody String title
+    });
+    setNewTaskTitle({ ...newTaskTitle, [projectId]: "" });
+    loadData();
+};
 
     const handleActivate = async (id) => {
-        try {
-            await api.patch(`/projects/${id}/activate`);
-            loadData();
-            alert("Project Activated!");
-        } catch (err) { alert("Error: A project needs at least 1 active task to be activated."); }
-    };
+    try {
+        // Ajustado a la ruta correcta (asegúrate que el controller tenga este PatchMapping)
+        await api.patch(`/projects/${id}/activate`); 
+        loadData();
+        alert("Project Activated!");
+    } catch (err) {
+        alert(err.response?.data?.message || "Error: Needs at least 1 task.");
+    }
+};
 
     useEffect(() => { loadData(); }, []);
 
