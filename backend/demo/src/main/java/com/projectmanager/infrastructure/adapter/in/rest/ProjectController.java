@@ -3,6 +3,7 @@ package com.projectmanager.infrastructure.adapter.in.rest;
 import com.projectmanager.domain.model.Project;
 import com.projectmanager.domain.port.in.CreateProjectUseCase;
 import com.projectmanager.domain.port.in.GetProjectsUseCase;
+import com.projectmanager.infrastructure.adapter.in.rest.dto.ProjectRequest;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

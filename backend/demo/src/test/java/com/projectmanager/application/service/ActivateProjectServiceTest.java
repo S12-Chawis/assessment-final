@@ -2,8 +2,7 @@ package com.projectmanager.application.service;
 
 import com.projectmanager.domain.model.Project;
 import com.projectmanager.domain.model.ProjectStatus;
-import com.projectmanager.domain.port.out.AuditLogPort;
-import com.projectmanager.domain.port.out.ProjectRepositoryPort;
+import com.projectmanager.domain.port.out.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -13,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,14 +28,14 @@ class ActivateProjectTest {
 
     @Test
     void activateProject_WithoutTasks_ShouldFail() {
-        UUID pid = UUID.randomUUID();
-        UUID uid = UUID.randomUUID();
-        Project p = new Project(pid, uid, "Test", ProjectStatus.DRAFT, false);
+        UUID id = UUID.randomUUID();
+        UUID ownerId = UUID.randomUUID();
+        Project p = new Project(id, ownerId, "Test", ProjectStatus.DRAFT, false);
 
-        when(projectRepo.findById(pid)).thenReturn(Optional.of(p));
-        when(user.getCurrentUserId()).thenReturn(uid);
-        when(taskRepo.countByProjectIdAndCompletedFalse(pid)).thenReturn(0L);
+        when(projectRepo.findById(id)).thenReturn(Optional.of(p));
+        when(user.getCurrentUserId()).thenReturn(ownerId);
+        when(taskRepo.countByProjectIdAndCompletedFalse(id)).thenReturn(0L);
 
-        assertThrows(IllegalStateException.class, () -> service.activate(pid)); //
+        assertThrows(IllegalStateException.class, () -> service.activate(id)); //
     }
 }

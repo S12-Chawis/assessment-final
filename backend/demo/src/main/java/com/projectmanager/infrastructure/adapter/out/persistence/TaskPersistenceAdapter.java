@@ -1,6 +1,7 @@
 package com.projectmanager.infrastructure.adapter.out.persistence;
 
 import com.projectmanager.domain.model.Task;
+import com.projectmanager.domain.port.out.TaskRepositoryPort;
 import com.projectmanager.infrastructure.adapter.out.persistence.mapper.TaskMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

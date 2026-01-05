@@ -1,5 +1,6 @@
 package com.projectmanager.infrastructure.adapter.out.external;
 
+import com.projectmanager.domain.port.out.NotificationPort;
 import org.springframework.stereotype.Component;
 
 @Component

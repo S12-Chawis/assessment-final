@@ -3,13 +3,13 @@ package com.projectmanager.application.service;
 import com.projectmanager.domain.model.Project;
 import com.projectmanager.domain.model.ProjectStatus;
 import com.projectmanager.domain.model.Task;
-import com.projectmanager.domain.port.out.AuditLogPort;
-import com.projectmanager.domain.port.out.ProjectRepositoryPort;
-import jakarta.persistence.EntityNotFoundException;
+import com.projectmanager.domain.port.in.ActivateProjectUseCase;
+import com.projectmanager.domain.port.in.CompleteTaskUseCase;
+import com.projectmanager.domain.port.in.CreateTaskUseCase;
+import com.projectmanager.domain.port.out.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.AccessDeniedException;
 import java.util.UUID;
 
 @Service
@@ -24,13 +24,7 @@ public class ProjectTaskService implements CreateTaskUseCase, CompleteTaskUseCas
 
     @Override
     public Task create(UUID projectId, String title) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new EntityNotFoundException("Project not found"));
-
-        // Regla 2: Solo el propietario puede modificar [cite: 110]
-        if (!project.getOwnerId().equals(currentUser.getCurrentUserId())) {
-            throw new AccessDeniedException("403 Forbidden: Not the owner");
-        }
+        Project project = findProjectAndValidateOwnership(projectId);
 
         Task task = new Task(UUID.randomUUID(), projectId, title, false, false);
         return taskRepository.save(task);
@@ -38,40 +32,51 @@ public class ProjectTaskService implements CreateTaskUseCase, CompleteTaskUseCas
 
     @Override
     public void activate(UUID projectId) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new EntityNotFoundException("Project not found"));
+        Project project = findProjectAndValidateOwnership(projectId);
 
-        if (!project.getOwnerId().equals(currentUser.getCurrentUserId())) {
-            throw new AccessDeniedException("403 Forbidden: Not the owner"); // [cite: 110]
-        }
-
-        // Regla 1: Al menos una tarea activa [cite: 109]
+        // REGLA: Al menos una tarea activa (no completada) para activar
         long activeTasks = taskRepository.countByProjectIdAndCompletedFalse(projectId);
         if (activeTasks == 0) {
-            throw new IllegalStateException("Cannot activate project without active tasks");
+            throw new IllegalStateException("Cannot activate project without at least one active task.");
         }
 
         project.setStatus(ProjectStatus.ACTIVE);
         projectRepository.save(project);
 
-        auditLog.register("PROJECT_ACTIVATED", projectId); // [cite: 113]
-        notification.notify("Project " + project.getName() + " is now ACTIVE"); // [cite: 114]
+        // REGLA: Generar auditoría y notificación
+        auditLog.register("PROJECT_ACTIVATED", projectId);
+        notification.notify("Your project '" + project.getName() + "' is now ACTIVE.");
     }
 
     @Override
     public void completeTask(UUID taskId) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new EntityNotFoundException("Task not found"));
+                .orElseThrow(() -> new RuntimeException("Task not found"));
 
-        // Regla 3: Tarea completada no puede modificarse [cite: 111]
+        // REGLA: Verificar propiedad a través del proyecto
+        findProjectAndValidateOwnership(task.getProjectId());
+
+        // REGLA: Una tarea completada no puede modificarse
         if (task.isCompleted()) {
-            throw new IllegalStateException("Task is already completed");
+            throw new IllegalStateException("Task is already completed and cannot be modified.");
         }
 
         task.setCompleted(true);
         taskRepository.save(task);
 
-        auditLog.register("TASK_COMPLETED", taskId); // [cite: 113]
-        notification.notify("Task " + task.getTitle() + " completed"); // [cite: 114]
+        // REGLA: Auditoría y notificación
+        auditLog.register("TASK_COMPLETED", taskId);
+        notification.notify("Task '" + task.getTitle() + "' has been marked as completed.");
+    }
+
+    private Project findProjectAndValidateOwnership(UUID projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        // REGLA: Solo el propietario puede modificar [403 Forbidden]
+        if (!project.getOwnerId().equals(currentUser.getCurrentUserId())) {
+            throw new RuntimeException("Access Denied: You are not the owner of this project.");
+        }
+        return project;
     }
 }

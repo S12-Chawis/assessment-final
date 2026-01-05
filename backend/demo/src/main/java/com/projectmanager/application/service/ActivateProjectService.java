@@ -1,8 +1,8 @@
 package com.projectmanager.application.service;
 
 import com.projectmanager.domain.model.Project;
-import com.projectmanager.domain.port.out.AuditLogPort;
-import com.projectmanager.domain.port.out.ProjectRepositoryPort;
+import com.projectmanager.domain.port.in.ActivateProjectUseCase;
+import com.projectmanager.domain.port.out.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

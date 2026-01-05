@@ -4,6 +4,7 @@ import com.projectmanager.domain.model.Project;
 import com.projectmanager.domain.model.ProjectStatus;
 import com.projectmanager.domain.port.in.CreateProjectUseCase;
 import com.projectmanager.domain.port.in.GetProjectsUseCase;
+import com.projectmanager.domain.port.out.CurrentUserPort;
 import com.projectmanager.domain.port.out.ProjectRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,6 @@ public class ProjectService implements CreateProjectUseCase, GetProjectsUseCase 
     @Override
     public List<Project> getAllForCurrentUser() {
         UUID ownerId = currentUserPort.getCurrentUserId();
-        return projectRepository.findByOwnerId(ownerId);
+        return projectRepository.findAllByOwnerId(ownerId);
     }
 }

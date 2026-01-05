@@ -2,6 +2,7 @@ package com.projectmanager.infrastructure.adapter.out.persistence;
 
 import com.projectmanager.domain.model.Project;
 import com.projectmanager.domain.port.out.ProjectRepositoryPort;
+import com.projectmanager.infrastructure.adapter.out.persistence.mapper.ProjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,9 +16,7 @@ public class ProjectPersistenceAdapter implements ProjectRepositoryPort {
     private final JpaProjectRepository jpaRepository;
 
     @Override
-    public List<Project> findByOwnerId(UUID ownerId) {
-        // 1. Llamamos al repositorio de Spring Data
-        // 2. Convertimos la lista de Entidades a lista de Dominio usando el Mapper
+    public List<Project> findAllByOwnerId(UUID ownerId) {
         return jpaRepository.findByOwnerId(ownerId).stream()
                 .map(ProjectMapper::toDomain)
                 .toList();

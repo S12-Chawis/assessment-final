@@ -1,6 +1,7 @@
 package com.projectmanager.infrastructure.adapter.in.security;
 
 import com.projectmanager.domain.model.User;
+import com.projectmanager.domain.port.out.CurrentUserPort;
 import com.projectmanager.domain.port.out.UserRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;

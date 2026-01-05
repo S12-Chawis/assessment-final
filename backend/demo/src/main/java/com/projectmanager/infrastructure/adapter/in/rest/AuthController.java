@@ -2,6 +2,8 @@ package com.projectmanager.infrastructure.adapter.in.rest;
 
 import com.projectmanager.domain.model.User;
 import com.projectmanager.domain.port.out.UserRepositoryPort;
+import com.projectmanager.infrastructure.adapter.in.rest.dto.AuthResponse;
+import com.projectmanager.infrastructure.adapter.in.rest.dto.LoginRequest;
 import com.projectmanager.infrastructure.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final UserRepositoryPort userRepository;
@@ -21,7 +23,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
-        user.setPassword(passwordEncoder.encode(user.password()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return ResponseEntity.ok(userRepository.save(user));
     }
 
