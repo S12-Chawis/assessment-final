@@ -7,21 +7,33 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   backend:
-    build: ./backend/demo
+    build:
+      context: ./backend/demo
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker # ESTO ACTIVA TU ARCHIVO application-docker.properties
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "8080:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-    depends_on:
-      - db
 
-  frontend:
-    build: ./frontend/frontend  # <--- Asegúrate que esta sea la ruta a tu carpeta de React
+  frontend: # ESTO ES LO QUE FALTABA EN TU ÚLTIMA CORRIDA
+    build:
+      context: ./frontend/frontend
+      dockerfile: Dockerfile
     ports:
       - "5173:5173"
     depends_on:
       - backend
-    environment:
-      - VITE_API_URL=http://localhost:8080/api # Si usas Vite

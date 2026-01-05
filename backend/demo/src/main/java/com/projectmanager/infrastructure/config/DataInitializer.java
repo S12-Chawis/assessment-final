@@ -20,26 +20,23 @@ public class DataInitializer implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    @Transactional // Agrega esto para asegurar que la operación sea atómica
     public void run(String... args) {
-        String defaultUsername = "admin";
+        String username = "admin";
 
-        // Verificamos si ya existe para evitar conflictos de transacciones
-        if (userRepository.findByUsername(defaultUsername).isEmpty()) {
-            User admin = new User(
-                    UUID.randomUUID(),
-                    defaultUsername,
-                    "admin@example.com",
-                    passwordEncoder.encode("admin123")
-            );
-            try {
-                userRepository.save(admin);
-                System.out.println(">>>> USUARIO DE PRUEBA CREADO: admin / admin123");
-            } catch (Exception e) {
-                // Si por alguna razón de concurrencia falla, simplemente lo ignoramos
-                // ya que significa que el usuario ya fue creado por otro hilo
-                System.out.println(">>>> El usuario ya existe o hubo un conflicto menor: " + e.getMessage());
-            }
+        // Verificación simple
+        if (userRepository.findByUsername(username).isEmpty()) {
+            User admin = new User();
+            // Si tu constructor requiere UUID, usa UUID.randomUUID()
+            // pero asegúrate de que el objeto sea nuevo para JPA
+            admin.setId(UUID.randomUUID());
+            admin.setUsername(username);
+            admin.setEmail("admin@example.com");
+            admin.setPassword(passwordEncoder.encode("admin123"));
+
+            userRepository.save(admin);
+            System.out.println(">>>> USUARIO CREADO EXITOSAMENTE");
+        } else {
+            System.out.println(">>>> EL USUARIO YA EXISTÍA EN DB");
         }
     }
 }
